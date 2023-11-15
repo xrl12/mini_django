@@ -1,3 +1,4 @@
+import socket
 from wsgiref import simple_server
 
 
@@ -30,6 +31,7 @@ class WSGIServer(simple_server.WSGIServer):
     """
 
     def __init__(self, *args, **kwargs):
+        self.address_family = socket.AF_INET6
         super().__init__(*args, **kwargs)
 
 
@@ -40,7 +42,7 @@ if __name__ == '__main__':
 
     # 导入我们自己编写的application函数:
     # 创建一个服务器，IP地址为空，端口是8000，处理函数是application:
-    httpd = WSGIServer(('0.0.0.0', 8001), WSGIHandler)
+    httpd = WSGIServer(('::', 8001), WSGIHandler)
     httpd.set_app(application)
     print('Serving HTTP on port 8001...')
     # 开始监听HTTP请求:
