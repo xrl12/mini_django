@@ -1,5 +1,7 @@
 from wsgiref import simple_server
 from mini_django import settings
+from mini_django.utils.module_loading import import_string
+from mini_django.core.wsgi import get_wsgi_application
 
 
 def get_internal_wsgi_application():
@@ -11,9 +13,11 @@ def get_internal_wsgi_application():
     """
     try:
         wsgi_application = settings.WSGI_APPLICATION
-
+        if wsgi_application is None:
+            return get_wsgi_application()
+        return import_string(wsgi_application)
     except AttributeError as ex:
-        pass
+        raise RuntimeError()
 
 
 class WSGIServer(simple_server.WSGIServer):
@@ -48,10 +52,12 @@ def run(
     :return:
     """
     server_address = (addr, port)
+    if on_bind:
+        on_bind(addr, port)
     httpd = server_cls(server_address, WSGIRequestHandler)
     httpd.set_app(wsgi_handler)
     httpd.serve_forever()
 
 
 if __name__ == '__main__':
-    get_internal_wsgi_application()
+    pass
