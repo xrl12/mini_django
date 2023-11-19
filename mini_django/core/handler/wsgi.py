@@ -14,3 +14,5 @@ class WsgiHandler(base.BaseHandler):
         :return:
         """
         print("调用了__call__方法")
+        start_response('200 OK', [('Content-Type', 'text/html')])
+        return [b"<h1>hello world</h1>"]
