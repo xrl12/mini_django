@@ -1,49 +1,29 @@
-import socket
-from wsgiref import simple_server
+from threading import Thread
+import signal
+import sys
+
+IS_CLOSE = False
 
 
-def application(environ, start_response):
-    # 分发路由
-    print(environ, 'envion')
-    start_response('200 OK', [('Content-Type', 'text/html')])
-    return [b'<h1>Hello, web!</h1>']
+def is_exit():
+    global IS_CLOSE
+    return IS_CLOSE
 
 
-class WSGIHandler(simple_server.WSGIRequestHandler):
-    """
-    处理request请求的
-    """
-
-    def __init__(self, *args, **kwargs):
-        print('我初始化handler了', *args, **kwargs)
-        super().__init__(*args, **kwargs)
-
-    def __call__(self, *args, **kwargs):
-        print('调用WSGIHandler')
-
-    def handler(self):
-        print('调用了handler方法')
+def worker(task):
+    while True:
+        if is_exit():
+            print("exit ......")
+            return
 
 
-class WSGIServer(simple_server.WSGIServer):
-    """
-    启动的wsgi服务¥
-    """
-
-    def __init__(self, *args, **kwargs):
-        self.address_family = socket.AF_INET6
-        super().__init__(*args, **kwargs)
+def handler_sigterm(*args):
+    global IS_CLOSE
+    IS_CLOSE = True
 
 
-if __name__ == '__main__':
-    # server.py
-    # 从wsgiref模块导入:
-    from wsgiref.simple_server import make_server
-
-    # 导入我们自己编写的application函数:
-    # 创建一个服务器，IP地址为空，端口是8000，处理函数是application:
-    httpd = WSGIServer(('::', 8001), WSGIHandler)
-    httpd.set_app(application)
-    print('Serving HTTP on port 8001...')
-    # 开始监听HTTP请求:
-    httpd.serve_forever()
+if __name__ == "__main__":
+    signal.signal(signal.SIGTERM, handler_sigterm)
+    thread1 = Thread(target=worker, args='1')
+    thread1.start()
+    thread1.join(10)

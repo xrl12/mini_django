@@ -2,6 +2,7 @@ from wsgiref import simple_server
 from mini_django import settings
 from mini_django.utils.module_loading import import_string
 from mini_django.core.wsgi import get_wsgi_application
+from socketserver import ThreadingMixIn
 
 
 def get_internal_wsgi_application():
@@ -54,7 +55,11 @@ def run(
     server_address = (addr, port)
     if on_bind:
         on_bind(addr, port)
-    httpd = server_cls(server_address, WSGIRequestHandler)
+    if threading:
+        http_cls = type('WsgiHandler', (ThreadingMixIn, server_cls), {})
+    else:
+        http_cls = server_cls
+    httpd = http_cls(server_address, WSGIRequestHandler)
     httpd.set_app(wsgi_handler)
     httpd.serve_forever()
 

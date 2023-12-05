@@ -13,18 +13,21 @@ class RunServer():
     def __init__(self):
         self.protocol = "http://"
 
-    def run(self, use_reloader, addr, port):
+    def run(self, use_reloader, addr, port, threading):
         """
         启动wsgi服务，
         todo 现在不写热加载，后面在追加热加载，先只考虑手动修改
         检查是否要热加载，然后根据不同来启动wsgi服务
         :param use_reloader: 是否热加载
+        :param addr: host地址
+        :param port: 端口
+        :param threading: 多线程
         :return:
         """
         if use_reloader:
             # 暂时跳过热加载
             pass
-        self.inner_run(addr, port)
+        self.inner_run(addr, port, threading)
 
     def get_handler(self, *args, **options):
         """
@@ -35,17 +38,18 @@ class RunServer():
         """
         return get_internal_wsgi_application()
 
-    def inner_run(self, addr, port):
+    def inner_run(self, addr, port, threading):
         """
         获取到WSGIhandler服务，
         然后在
         启动wsgi服务
-        :param args:
-        :param options:
+        :param addr: 地址
+        :param port: 端口
+        :param threading 是否启动多线程
         :return:
         """
         wsgi_handler = self.get_handler()
-        run(addr, port, wsgi_handler, True, True, on_bind=self.on_bind)
+        run(addr, port, wsgi_handler, True, threading, on_bind=self.on_bind)
 
     def get_version(self):
         """
