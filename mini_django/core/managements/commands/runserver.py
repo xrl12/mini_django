@@ -2,6 +2,7 @@ import sys
 from datetime import datetime
 from mini_django.core.servers.base_http import run, get_internal_wsgi_application
 from mini_django import settings
+from mini_django.utils.autoreload import run_with_reload
 
 
 class RunServer():
@@ -24,10 +25,15 @@ class RunServer():
         :param threading: 多线程
         :return:
         """
+
+        def test_a(*args, **kwargs):
+            while True:
+                print('abc')
+
         if use_reloader:
-            # 暂时跳过热加载
-            pass
-        self.inner_run(addr, port, threading)
+            run_with_reload(self.inner_run, addr, port, threading)
+        else:
+            self.inner_run(addr, port, threading)
 
     def get_handler(self, *args, **options):
         """
