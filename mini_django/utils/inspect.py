@@ -1,21 +1,36 @@
-import functools
 import inspect
 
 
-@functools.lru_cache(maxsize=512)
-def _get_func_parameters(func, remove_first):
-    parameters = tuple(inspect.signature(func).parameters.values())
+def get_callable_params(method_or_func):
+    """
+    获取函数或者方法的参数列表。
+    :param method_or_func:
+    :return:
+    1. 验证当前函数是方法还是函数
+    2. 获取到func对象
+    """
+    is_method = inspect.ismethod(method_or_func)
+    func = method_or_func.__func__ if is_method else method_or_func
+
+
+def get_func_params(func, remove_first):
+    """
+    获取函数的参数
+    :param func:
+    :param remove_first:
+    :return:
+    """
+    pamters = inspect.Signature(func).parameters.values()
     if remove_first:
-        parameters = parameters[1:]
-    return parameters
+        pamters = pamters[1:]
+    return pamters
 
 
-def _get_callable_parameters(meth_or_func):
-    is_method = inspect.ismethod(meth_or_func)
-    func = meth_or_func.__func__ if is_method else meth_or_func
-    return _get_func_parameters(func, remove_first=is_method)
-
-
-def func_accepts_kwargs(func):
-    """Return True if function 'func' accepts keyword arguments **kwargs."""
-    return any(p for p in _get_callable_parameters(func) if p.kind == p.VAR_KEYWORD)
+def valid_func_accepty_kwargs(func):
+    """
+    验证函数是否接受关键字参数
+    :param func:
+    :return:
+    https://docs.python.org/zh-cn/3/library/inspect.html#inspect.Parameter
+    """
+    return any(p for p in get_callable_params(func) if p.kind == p.VAR_KEYWORD)

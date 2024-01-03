@@ -125,7 +125,7 @@ def iter_all_python_modules():
 def iter_module_or_files(modules) -> [Path]:
     """
         检查当前模块是否是标准模块类型
-        判断是否标准倒入（如果标准导入一定是有spec属性的）
+        判断是否标准导入（如果标准导入一定是有spec属性的）
         判断是否是动态创建的，如果是动态创建的，就没有has_location属性
         **总结：就是过滤掉不需要监听的文件**
 
@@ -256,7 +256,6 @@ def run_with_reload(main_func, *args, **kwargs):
     """
     signal.signal(signal.SIGTERM, lambda x: sys.exit(0))
     if os.environ.get(DJANGO_AUTORELOAD_ENV) == 'true':
-        print('ab')
         reload = get_reload_class()
         start_new_thread(main_func, reload, *args, **kwargs)
 
