@@ -1,11 +1,17 @@
 # inspect
+
 ## 版本
+
 ### python
+
 3.9.6
+
 ### inspect
+
 python 自带
 
 ## 具体功能
+
 ### 判断是否是一个绑定方法(ismethod)
 
 ```python
@@ -19,7 +25,7 @@ def get_func_params(func):
     """
     # https://docs.python.org/zh-cn/3.9/library/inspect.html?highlight=signature
     sig = inspect.signature(func)
-    print(inspect.ismethod(func)) 
+    print(inspect.ismethod(func))
 
 
 class TestObject(object):
@@ -46,8 +52,44 @@ if __name__ == '__main__':
     get_func_params(TestObject().test_cc)  # False
     get_func_params(TestObject.test_cc)  # False
     get_func_params(lambda x: x)  # False
-    get_func_params(TestObject) # False
+    get_func_params(TestObject)  # False
 
 
 ```
+
+## 判断是否是一个协程函数
+
+```python
+from asgiref.sync import iscoroutinefunction
+from functools import partial
+import asyncio
+import inspect
+
+
+async def test():
+    pass
+
+
+@asyncio.coroutine
+def test_aa():
+    pass
+
+
+async def test_bb():
+    pass
+
+
+@inspect.markcoroutinefunction # 现在不支持这个，这个会报错。
+def test_cc():
+    pass
+
+
+if __name__ == '__main__':
+    a = iscoroutinefunction(test)
+    print(a) # true
+    print(iscoroutinefunction(test_aa)) # true
+    print(iscoroutinefunction(partial(test_bb))) # true 
+    print(iscoroutinefunction(test_cc))
+
+ ```
 

@@ -26,7 +26,7 @@ def get_func_params(func, remove_first):
     return pamters
 
 
-def valid_func_accepty_kwargs(func):
+def valid_func_accept_kwargs(func):
     """
     验证函数是否接受关键字参数
     :param func:

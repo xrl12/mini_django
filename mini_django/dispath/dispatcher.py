@@ -1,4 +1,6 @@
 import threading
+from mini_django.utils.inspect import valid_func_accept_kwargs
+from asgiref.sync import iscoroutinefunction
 
 
 def make_id(target):
@@ -53,13 +55,25 @@ class Signal(object):
             一个接收者的唯一标识符，通常是一个字符串，但是他也可以是一任意一个哈希值
 
         1. 验证接收者是否可以被调用，和验证接收者是否支持关键词函数
+        2. 给接收者和发送者生成一个唯一的id
+            检查是否传入了dispatch_uid，如果传入了，那么就使用这个，如果没有传入，使用内存地址
         """
         # 1. 验证接收者是否可以被调用
         if not callable(reversed):
             raise RuntimeError('receiver not callable')
+        # 2. 验证接收者是否支持关键词函数
+        if not valid_func_accept_kwargs(receivers):
+            raise RuntimeError('receiver does not accept keyword arguments')
 
+        # 3. 给接收者和发送者生成一个唯一的id
+        if dispatch_uid:
+            lookup_key = (dispatch_uid, make_id(sender))
+        else:
+            lookup_key = (make_id(receivers), make_id(sender))
+        # 4. 验证接收者是否支持async
+        is_async = iscoroutinefunction(receivers)
         with self.lock:
-            # 这是一个多进程，所以这里需要上锁，
+            # 多进程
             print()
 
     def send(self, sender, **kwargs):
