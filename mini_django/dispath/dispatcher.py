@@ -1,3 +1,4 @@
+import weakref
 import threading
 from mini_django.utils.inspect import valid_func_accept_kwargs
 from asgiref.sync import iscoroutinefunction
@@ -9,9 +10,10 @@ def make_id(target):
     查看是否是一个类函数，然后返回内存地址
     :param target:
     :return:
+
     """
     if hasattr(target, '__func__'):
-        return (id(target.self), id(target.__func__))
+        return id(target.self), id(target.__func__)
     return id(target)
 
 
@@ -27,7 +29,7 @@ class Signal(object):
         self.lock = threading.Lock()  # 上锁
         self.deal_revers = False  # 死亡的接收者，
 
-    def connect(self, receivers, sender, weaker=True, dispatch_uid=False):
+    def connect(self, receivers, sender, weak=True, dispatch_uid=False):
         """
         订阅者和发布者连接起来
         Arguments
@@ -74,7 +76,37 @@ class Signal(object):
         is_async = iscoroutinefunction(receivers)
         with self.lock:
             # 多进程
-            print()
+            """
+            获取接收者对象，
+            区分是否是bound函数，如果是bound函数，则对象就是实例，如果不是则对象就是本身
+            """
+            receiver_obj = receivers
+            # 检查是否使用弱引用
+            if weak:
+                ref = weakref.ref
+                # 1. 检查是否为bound方法
+                if hasattr(receivers, '__self__') and hasattr(receivers, '__func__'):
+                    ref = weakref.WeakMethod
+                    receiver_obj = getattr(receivers, '__self__')
+                receiver = ref(receivers)
+                # 2. 监听接收者对象，当有接收者对象死亡当时候，出发
+                weakref.finalize(receiver_obj, self._remove_receiver)
+            # 3. 清理掉死亡当接受者
+            self.clear_dead_receiver()
+            # 4. 判断当前接收者是否可重复了
+            if not any([lookup_key == lookup for lookup, _, _ in self.receivers]):
+                self.receivers.append([lookup_key, reversed, is_async])
+
+
+    def clear_dead_receiver(self):
+        """
+        清除已经死掉的接收者
+        :return:
+        """
+        if self.deal_revers:
+            self.receivers = [
+
+            ]
 
     def send(self, sender, **kwargs):
         """
@@ -87,3 +119,6 @@ class Signal(object):
         :param sender:
         :return:
         """
+
+    def _remove_receiver(self, true=True):
+        self.deal_revers = true
